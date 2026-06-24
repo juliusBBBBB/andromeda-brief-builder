@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Keaps Copy Brief Builder</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f9f9f7; color: #1a1a18; padding: 2rem 1rem; }
+.container { max-width: 880px; margin: 0 auto; }
+h1 { font-size: 20px; font-weight: 500; margin-bottom: 4px; }
+.page-sub { font-size: 14px; color: #666; margin-bottom: 2rem; }
+.tier-label { font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: #999; margin-bottom: 6px; }
+.section { margin-bottom: 2rem; }
+.section-title { font-size: 15px; font-weight: 500; color: #1a1a18; margin-bottom: 4px; }
+.section-sub { font-size: 13px; color: #666; margin-bottom: 12px; }
+.blocks { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px; }
+.block { border: 0.5px solid #ddd; border-radius: 8px; padding: 10px 12px; cursor: pointer; transition: border-color 0.15s, background 0.15s; background: #fff; user-select: none; }
+.block:hover { border-color: #bbb; background: #f5f5f3; }
+.block.selected { border-color: #7F77DD; background: #EEEDFE; }
+.block.selected .block-id { color: #3C3489; }
+.block.selected .block-text strong { color: #3C3489; }
+.block.selected .block-text span { color: #534AB7; }
+.block-id { font-size: 11px; font-weight: 500; color: #999; margin-bottom: 3px; letter-spacing: 0.04em; }
+.block-text strong { font-weight: 500; display: block; margin-bottom: 2px; font-size: 13px; color: #1a1a18; }
+.block-text span { color: #666; font-size: 12px; line-height: 1.4; display: block; }
+.divider { border: none; border-top: 0.5px solid #e0e0e0; margin: 2rem 0; }
+.vector-bar { background: #f3f3f0; border: 0.5px solid #ddd; border-radius: 8px; padding: 12px 16px; margin-bottom: 2rem; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.vector-label { font-size: 12px; color: #666; margin-bottom: 4px; }
+.vector-id { font-size: 14px; font-weight: 500; color: #1a1a18; font-family: 'SF Mono', 'Fira Code', monospace; letter-spacing: 0.05em; }
+.slot { display: inline-block; min-width: 28px; text-align: center; background: #fff; border: 0.5px solid #ddd; border-radius: 4px; padding: 2px 6px; font-size: 13px; color: #bbb; }
+.slot.filled { border-color: #7F77DD; color: #3C3489; background: #EEEDFE; }
+.tier1-badge { font-size: 10px; padding: 2px 7px; border-radius: 4px; background: #EEEDFE; color: #534AB7; font-weight: 500; }
+.tier2-badge { font-size: 10px; padding: 2px 7px; border-radius: 4px; background: #E1F5EE; color: #0F6E56; font-weight: 500; }
+.btn { background: #fff; border: 0.5px solid #ccc; border-radius: 8px; padding: 8px 16px; font-size: 13px; cursor: pointer; transition: background 0.15s; }
+.btn:hover { background: #f0f0ee; }
+.btn-primary { background: #534AB7; color: #fff; border-color: #534AB7; margin-left: auto; }
+.btn-primary:hover { background: #3C3489; }
+.output-area { background: #fff; border: 0.5px solid #ddd; border-radius: 8px; padding: 16px; margin-top: 1rem; font-size: 13px; line-height: 1.7; color: #333; white-space: pre-wrap; font-family: 'SF Mono', 'Fira Code', monospace; display: none; }
+.copy-btn { margin-top: 8px; font-size: 12px; }
+.actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 1rem; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Keaps Copy Brief Builder</h1>
+  <p class="page-sub">Select your blocks, then copy the generated prompt into Claude to write the advertorial.</p>
+
+  <div class="tier-label">Vector ID</div>
+  <div class="vector-bar">
+    <div>
+      <div class="vector-label">A + M + F + H — your audience routing signal</div>
+      <div class="vector-id">
+        A<span class="slot" id="s-A">__</span>
+        &nbsp;M<span class="slot" id="s-M">__</span>
+        &nbsp;F<span class="slot" id="s-F1">__</span>,<span class="slot" id="s-F2">__</span>
+        &nbsp;H<span class="slot" id="s-H">__</span>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="buildPrompt()">Generate copy prompt →</button>
+  </div>
+
+  <hr class="divider">
+
+  <div class="tier-label" style="margin-bottom:16px">Tier 1 — audience routing &nbsp;<span class="tier1-badge">Change 2+ to create a new vector</span></div>
+
+  <div class="section">
+    <div class="section-title">A — Audience identity</div>
+    <div class="section-sub">Who is reading this? Pick one.</div>
+    <div class="blocks" id="group-A">
+      <div class="block" onclick="pick('A','1',this)"><div class="block-id">A1</div><div class="block-text"><strong>Problem-aware senior</strong><span>65+, noticing memory slippage, Alzheimer's fear is the real driver</span></div></div>
+      <div class="block" onclick="pick('A','2',this)"><div class="block-id">A2</div><div class="block-text"><strong>Adult child / caretaker</strong><span>45–55, watching a parent decline, acting on their behalf</span></div></div>
+      <div class="block" onclick="pick('A','3',this)"><div class="block-id">A3</div><div class="block-text"><strong>Retired professional</strong><span>60–72, sharp identity, used to being the smartest in the room, afraid of losing that</span></div></div>
+      <div class="block" onclick="pick('A','4',this)"><div class="block-id">A4</div><div class="block-text"><strong>High-performer maintenance</strong><span>45–60, exec or professional, not declining yet but wants to protect the edge</span></div></div>
+      <div class="block" onclick="pick('A','5',this)"><div class="block-id">A5</div><div class="block-text"><strong>Sleep-first</strong><span>Any age, poor sleep is the presenting complaint — cognitive fog is secondary</span></div></div>
+      <div class="block" onclick="pick('A','6',this)"><div class="block-id">A6</div><div class="block-text"><strong>Active ager</strong><span>60+, still running/lifting/hiking — mental edge = physical edge</span></div></div>
+      <div class="block" onclick="pick('A','7',this)"><div class="block-id">A7</div><div class="block-text"><strong>Inflammation-aware</strong><span>Health-conscious, already reads about inflammation, wants mechanism not marketing</span></div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">M — Mechanism</div>
+    <div class="section-sub">The core biological reason Keaps works. Pick one.</div>
+    <div class="blocks" id="group-M">
+      <div class="block" onclick="pick('M','1',this)"><div class="block-id">M1</div><div class="block-text"><strong>DHA delivery gap</strong><span>The brain can't make DHA. Most omega-3 forms can't cross the blood-brain barrier in usable amounts. Keaps delivers the form that does.</span></div></div>
+      <div class="block" onclick="pick('M','2',this)"><div class="block-id">M2</div><div class="block-text"><strong>Resolvins / protectins</strong><span>Inflammation isn't just reduced — it has to be actively resolved. Most supplements only suppress. Keaps triggers the resolution pathway.</span></div></div>
+      <div class="block" onclick="pick('M','3',this)"><div class="block-id">M3</div><div class="block-text"><strong>Cortisol → hippocampal atrophy</strong><span>Chronic stress physically shrinks the hippocampus over time. Lower cortisol response = neurogenesis can restart.</span></div></div>
+      <div class="block" onclick="pick('M','4',this)"><div class="block-id">M4</div><div class="block-text"><strong>Mitochondrial neuron energy</strong><span>Brain cells run on ATP. Aging mitochondria produce less. The fog is an energy production problem, not a nutrition gap.</span></div></div>
+      <div class="block" onclick="pick('M','5',this)"><div class="block-id">M5</div><div class="block-text"><strong>Synaptic plasticity / BDNF</strong><span>Cognitive decline is about losing the ability to form new connections. BDNF is the signal — and most people's levels are dropping.</span></div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">F — Failed solutions</div>
+    <div class="section-sub">What has the reader already tried? Pick 2–3.</div>
+    <div class="blocks" id="group-F">
+      <div class="block" onclick="pickMulti('F','1',this)"><div class="block-id">F1</div><div class="block-text"><strong>Basic fish oil</strong><span>Took it, smelled like low tide, noticed nothing</span></div></div>
+      <div class="block" onclick="pickMulti('F','2',this)"><div class="block-id">F2</div><div class="block-text"><strong>Generic brain supplements</strong><span>Ginkgo, B12, the Amazon brain stack — felt like marketing</span></div></div>
+      <div class="block" onclick="pickMulti('F','3',this)"><div class="block-id">F3</div><div class="block-text"><strong>Diet and lifestyle</strong><span>Already eating clean, sleeping 8 hours, exercising — still not sharp</span></div></div>
+      <div class="block" onclick="pickMulti('F','4',this)"><div class="block-id">F4</div><div class="block-text"><strong>Prescription route</strong><span>Doctor was dismissive, or side effects weren't worth it</span></div></div>
+      <div class="block" onclick="pickMulti('F','5',this)"><div class="block-id">F5</div><div class="block-text"><strong>Mental exercises</strong><span>Lumosity, crosswords, reading more — didn't transfer to real life</span></div></div>
+      <div class="block" onclick="pickMulti('F','6',this)"><div class="block-id">F6</div><div class="block-text"><strong>Exercise</strong><span>Physically in great shape but still declining mentally</span></div></div>
+      <div class="block" onclick="pickMulti('F','7',this)"><div class="block-id">F7</div><div class="block-text"><strong>Sleep hygiene</strong><span>Fixed the sleep, the fog stayed anyway</span></div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">H — Hook / opening frame</div>
+    <div class="section-sub">The emotional entry point. Pick one.</div>
+    <div class="blocks" id="group-H">
+      <div class="block" onclick="pick('H','1',this)"><div class="block-id">H1</div><div class="block-text"><strong>Identity threat</strong><span>"The moment I realized I wasn't as sharp as I used to be..." — self-recognition, internal trigger</span></div></div>
+      <div class="block" onclick="pick('H','2',this)"><div class="block-id">H2</div><div class="block-text"><strong>Stranger encounter</strong><span>Unsolicited observation from someone who looks remarkable for their age</span></div></div>
+      <div class="block" onclick="pick('H','3',this)"><div class="block-id">H3</div><div class="block-text"><strong>Contrarian claim</strong><span>Everything you've been told about brain health is incomplete / backwards / missing the point</span></div></div>
+      <div class="block" onclick="pick('H','4',this)"><div class="block-id">H4</div><div class="block-text"><strong>Research reveal</strong><span>Scientists discovered something the supplement industry hasn't caught up to yet</span></div></div>
+      <div class="block" onclick="pick('H','5',this)"><div class="block-id">H5</div><div class="block-text"><strong>Personal confession</strong><span>I was embarrassed to admit what was happening to my memory / focus / word recall</span></div></div>
+      <div class="block" onclick="pick('H','6',this)"><div class="block-id">H6</div><div class="block-text"><strong>Observation by others</strong><span>My spouse / colleague / adult child noticed the change before I did</span></div></div>
+      <div class="block" onclick="pick('H','7',this)"><div class="block-id">H7</div><div class="block-text"><strong>Urgency opening</strong><span>By the time most people notice the symptoms, the easy reversal window has already closed</span></div></div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="tier-label" style="margin-bottom:16px">Tier 2 — creative execution &nbsp;<span class="tier2-badge">Shape the story and tone</span></div>
+
+  <div class="section">
+    <div class="section-title">S — Story / protagonist jacket</div>
+    <div class="section-sub">Whose story carries the copy? Pick one.</div>
+    <div class="blocks" id="group-S">
+      <div class="block" onclick="pick('S','1',this)"><div class="block-id">S1</div><div class="block-text"><strong>Personal confession</strong><span>Narrator IS the reader's mirror — first person, "I was where you are"</span></div></div>
+      <div class="block" onclick="pick('S','2',this)"><div class="block-id">S2</div><div class="block-text"><strong>Stranger encounter</strong><span>Narrator meets someone with the answer, reports back</span></div></div>
+      <div class="block" onclick="pick('S','3',this)"><div class="block-id">S3</div><div class="block-text"><strong>Family discovery</strong><span>Adult child found this for a parent, or spouse found it and shared</span></div></div>
+      <div class="block" onclick="pick('S','4',this)"><div class="block-id">S4</div><div class="block-text"><strong>Friend referral</strong><span>Trusted peer mentioned this unprompted</span></div></div>
+      <div class="block" onclick="pick('S','5',this)"><div class="block-id">S5</div><div class="block-text"><strong>Authority reveal</strong><span>Doctor, researcher, or specialist shares what they actually take / recommend</span></div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">E — Explanation style</div>
+    <div class="section-sub">How is the mechanism taught? Pick one.</div>
+    <div class="blocks" id="group-E">
+      <div class="block" onclick="pick('E','1',this)"><div class="block-id">E1</div><div class="block-text"><strong>Simple analogy</strong><span>Body as factory, brain as engine — familiar comparison, no jargon</span></div></div>
+      <div class="block" onclick="pick('E','2',this)"><div class="block-id">E2</div><div class="block-text"><strong>Doctor's language</strong><span>Clinical but accessible — "what your physician may not have flagged"</span></div></div>
+      <div class="block" onclick="pick('E','3',this)"><div class="block-id">E3</div><div class="block-text"><strong>Research story</strong><span>Scientists found, a study showed, clinical trials revealed</span></div></div>
+      <div class="block" onclick="pick('E','4',this)"><div class="block-id">E4</div><div class="block-text"><strong>Myth-bust</strong><span>You've been told X — here's what that's missing</span></div></div>
+      <div class="block" onclick="pick('E','5',this)"><div class="block-id">E5</div><div class="block-text"><strong>Biological narrative</strong><span>Here is what is literally happening inside your brain right now</span></div></div>
+      <div class="block" onclick="pick('E','6',this)"><div class="block-id">E6</div><div class="block-text"><strong>Comparison frame</strong><span>Fish oil does X, Keaps delivers Y — here's the difference that matters</span></div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">P — Proof type</div>
+    <div class="section-sub">What closes the skepticism gap? Pick 1–2.</div>
+    <div class="blocks" id="group-P">
+      <div class="block" onclick="pickMulti('P','1',this)"><div class="block-id">P1</div><div class="block-text"><strong>Stranger testimonial</strong><span>Unsolicited, unprompted — overheard or happened to meet</span></div></div>
+      <div class="block" onclick="pickMulti('P','2',this)"><div class="block-id">P2</div><div class="block-text"><strong>Clinical / research cite</strong><span>Specific study, institution, or published finding</span></div></div>
+      <div class="block" onclick="pickMulti('P','3',this)"><div class="block-id">P3</div><div class="block-text"><strong>Volume social proof</strong><span>X thousand people using this</span></div></div>
+      <div class="block" onclick="pickMulti('P','4',this)"><div class="block-id">P4</div><div class="block-text"><strong>Expert endorsement</strong><span>Named doctor or researcher</span></div></div>
+      <div class="block" onclick="pickMulti('P','5',this)"><div class="block-id">P5</div><div class="block-text"><strong>Personal transformation</strong><span>Specific before/after with concrete detail — not vague</span></div></div>
+      <div class="block" onclick="pickMulti('P','6',this)"><div class="block-id">P6</div><div class="block-text"><strong>Peer group proof</strong><span>People just like you — same age, same situation</span></div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">O — Objection profile</div>
+    <div class="section-sub">Which three objections does this copy preempt? Pick 3.</div>
+    <div class="blocks" id="group-O">
+      <div class="block" onclick="pickMulti('O','1',this)"><div class="block-id">O1</div><div class="block-text"><strong>"I've tried supplements before and nothing worked"</strong></div></div>
+      <div class="block" onclick="pickMulti('O','2',this)"><div class="block-id">O2</div><div class="block-text"><strong>"Why hasn't my doctor told me about this?"</strong></div></div>
+      <div class="block" onclick="pickMulti('O','3',this)"><div class="block-id">O3</div><div class="block-text"><strong>"Is this just fish oil in a fancy bottle?"</strong></div></div>
+      <div class="block" onclick="pickMulti('O','4',this)"><div class="block-id">O4</div><div class="block-text"><strong>"I'm already healthy — I don't need this yet"</strong></div></div>
+      <div class="block" onclick="pickMulti('O','5',this)"><div class="block-id">O5</div><div class="block-text"><strong>"Is this safe for someone my age / on my medications?"</strong></div></div>
+      <div class="block" onclick="pickMulti('O','6',this)"><div class="block-id">O6</div><div class="block-text"><strong>"I can't justify taking something every day"</strong></div></div>
+      <div class="block" onclick="pickMulti('O','7',this)"><div class="block-id">O7</div><div class="block-text"><strong>"How long before I notice a difference?"</strong></div></div>
+      <div class="block" onclick="pickMulti('O','8',this)"><div class="block-id">O8</div><div class="block-text"><strong>"This sounds too good to be true"</strong></div></div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="actions">
+    <button class="btn" onclick="resetAll()">Reset all</button>
+    <button class="btn btn-primary" onclick="buildPrompt()">Generate copy prompt →</button>
+  </div>
+
+  <div class="output-area" id="outputArea"></div>
+  <div class="actions" id="copyActions" style="display:none;">
+    <button class="btn copy-btn" onclick="copyPrompt()">Copy prompt to clipboard</button>
+    <small style="color:#999; font-size:12px;">Paste this into Claude to generate the advertorial.</small>
+  </div>
+</div>
+
+<script>
+const state = { A: null, M: null, F: [], H: null, S: null, E: null, P: [], O: [] };
+const multiMax = { F: 3, P: 2, O: 3 };
+
+function pick(group, val, el) {
+  const prev = document.querySelector('#group-' + group + ' .selected');
+  if (prev) prev.classList.remove('selected');
+  el.classList.add('selected');
+  state[group] = val;
+  updateVector();
+}
+
+function pickMulti(group, val, el) {
+  const max = multiMax[group];
+  const arr = state[group];
+  const idx = arr.indexOf(val);
+  if (idx >= 0) {
+    arr.splice(idx, 1);
+    el.classList.remove('selected');
+  } else {
+    if (arr.length >= max) {
+      const firstSelected = document.querySelector('#group-' + group + ' .selected');
+      if (firstSelected) firstSelected.classList.remove('selected');
+      arr.shift();
+    }
+    arr.push(val);
+    el.classList.add('selected');
+  }
+  updateVector();
+}
+
+function updateVector() {
+  const set = (id, val) => {
+    const el = document.getElementById(id);
+    el.textContent = val || '__';
+    el.className = 'slot' + (val ? ' filled' : '');
+  };
+  set('s-A', state.A);
+  set('s-M', state.M);
+  set('s-F1', state.F[0]);
+  set('s-F2', state.F[1]);
+  set('s-H', state.H);
+}
+
+function resetAll() {
+  ['A','M','H','S','E'].forEach(g => state[g] = null);
+  ['F','P','O'].forEach(g => state[g] = []);
+  document.querySelectorAll('.block.selected').forEach(el => el.classList.remove('selected'));
+  updateVector();
+  document.getElementById('outputArea').style.display = 'none';
+  document.getElementById('copyActions').style.display = 'none';
+}
+
+function buildPrompt() {
+  const audienceMap = {'1':'Problem-aware senior (65+, noticing memory slippage, Alzheimer\'s fear is the real driver)','2':'Adult child / caretaker (45–55, watching a parent decline, acting on their behalf)','3':'Retired professional (60–72, sharp identity, used to being the smartest in the room, afraid of losing that)','4':'High-performer maintenance (45–60, exec or professional, not declining yet but wants to protect the edge)','5':'Sleep-first (any age, poor sleep is the presenting complaint — cognitive fog is secondary)','6':'Active ager (60+, still running/lifting/hiking, mental edge = physical edge)','7':'Inflammation-aware (health-conscious, already reads about inflammation, wants mechanism not marketing)'};
+  const mechMap = {'1':'M1 — DHA delivery gap: The brain can\'t make DHA. Most omega-3 forms can\'t cross the blood-brain barrier in usable amounts. Keaps delivers the form that does.','2':'M2 — Resolvins / protectins: Inflammation isn\'t just reduced — it has to be actively resolved. Most supplements only suppress. Keaps triggers the resolution pathway.','3':'M3 — Cortisol → hippocampal atrophy: Chronic stress physically shrinks the hippocampus. Lower cortisol response = neurogenesis can restart.','4':'M4 — Mitochondrial neuron energy: Brain cells run on ATP. Aging mitochondria produce less. The fog is an energy production problem.','5':'M5 — Synaptic plasticity / BDNF: Cognitive decline is about losing the ability to form new connections. BDNF is the signal — and most people\'s levels are dropping.'};
+  const failMap = {'1':'F1 — Basic fish oil (took it, smelled like low tide, noticed nothing)','2':'F2 — Generic brain supplements (ginkgo, B12, Amazon brain stack — felt like marketing)','3':'F3 — Diet and lifestyle (already eating clean, sleeping 8 hours, exercising — still not sharp)','4':'F4 — Prescription route (doctor was dismissive, or side effects weren\'t worth it)','5':'F5 — Mental exercises (Lumosity, crosswords, reading more — didn\'t transfer to real life)','6':'F6 — Exercise (physically in great shape but still declining mentally)','7':'F7 — Sleep hygiene (fixed the sleep, the fog stayed anyway)'};
+  const hookMap = {'1':'H1 — Identity threat: "The moment I realized I wasn\'t as sharp as I used to be..." — self-recognition, internal trigger','2':'H2 — Stranger encounter: Unsolicited observation from someone who looks remarkable for their age','3':'H3 — Contrarian claim: Everything you\'ve been told about brain health is incomplete / backwards / missing the point','4':'H4 — Research reveal: Scientists discovered something the supplement industry hasn\'t caught up to yet','5':'H5 — Personal confession: I was embarrassed to admit what was happening to my memory / focus / word recall','6':'H6 — Observation by others: My spouse / colleague / adult child noticed the change before I did','7':'H7 — Urgency opening: By the time most people notice the symptoms, the easy reversal window has already closed'};
+  const storyMap = {'1':'S1 — Personal confession (narrator IS the reader\'s mirror — first person)','2':'S2 — Stranger encounter (narrator meets someone with the answer, reports back)','3':'S3 — Family discovery (adult child found this for a parent, or spouse found it and shared)','4':'S4 — Friend referral (trusted peer mentioned this unprompted)','5':'S5 — Authority reveal (doctor, researcher, or specialist shares what they actually take)'};
+  const explMap = {'1':'E1 — Simple analogy (body as factory, brain as engine)','2':'E2 — Doctor\'s language (clinical but accessible)','3':'E3 — Research story (scientists found, a study showed)','4':'E4 — Myth-bust (you\'ve been told X — here\'s what that\'s missing)','5':'E5 — Biological narrative (here is what is literally happening inside your brain right now)','6':'E6 — Comparison frame (fish oil does X, Keaps delivers Y)'};
+  const proofMap = {'1':'P1 — Stranger testimonial','2':'P2 — Clinical / research cite','3':'P3 — Volume social proof','4':'P4 — Expert endorsement','5':'P5 — Personal transformation','6':'P6 — Peer group proof'};
+  const objMap = {'1':'O1 — "I\'ve tried supplements before and nothing worked"','2':'O2 — "Why hasn\'t my doctor told me about this?"','3':'O3 — "Is this just fish oil in a fancy bottle?"','4':'O4 — "I\'m already healthy — I don\'t need this yet"','5':'O5 — "Is this safe for someone my age / on my medications?"','6':'O6 — "I can\'t justify taking something every day"','7':'O7 — "How long before I notice a difference?"','8':'O8 — "This sounds too good to be true"'};
+
+  const missing = [];
+  if (!state.A) missing.push('Audience (A)');
+  if (!state.M) missing.push('Mechanism (M)');
+  if (state.F.length < 2) missing.push('Failed solutions — need at least 2 (F)');
+  if (!state.H) missing.push('Hook (H)');
+
+  if (missing.length) {
+    alert('Still need to pick:\n• ' + missing.join('\n• '));
+    return;
+  }
+
+  const vectorId = 'A' + state.A + ' + M' + state.M + ' + F' + state.F.join(',') + ' + H' + state.H;
+  const fails = state.F.map(f => '- ' + failMap[f]).join('\n');
+  const proofs = state.P.length ? state.P.map(p => '- ' + proofMap[p]).join('\n') : '- [none selected — pick one that fits]';
+  const objs = state.O.length ? state.O.map(o => '- ' + objMap[o]).join('\n') : '- [none selected — pick three]';
+
+  const prompt = `You are writing a long-form static advertorial for Keaps, a brain health supplement brand.
+
+This is a native-style ad designed to read like editorial content — a personal story or discovery, not a product page. Target length: 900–1200 words. Write in the tone of the chosen story jacket.
+
+Vector ID: ${vectorId}
+
+AUDIENCE IDENTITY: A${state.A} — ${audienceMap[state.A]}
+
+MECHANISM: ${mechMap[state.M]}
+
+FAILED SOLUTIONS:
+${fails}
+
+HOOK / OPENING FRAME: ${hookMap[state.H]}
+
+STORY JACKET: ${state.S ? storyMap[state.S] : '[not selected — pick one that fits the hook]'}
+
+EXPLANATION STYLE: ${state.E ? explMap[state.E] : '[not selected — pick one that fits the audience]'}
+
+PROOF TYPE:
+${proofs}
+
+OBJECTIONS TO PREEMPT:
+${objs}
+
+Writing rules:
+- Do not name the product or brand until at least 400 words in
+- The first 3 lines must execute the H-block hook — do not open with backstory or setup
+- Failed solutions must appear before the mechanism is revealed
+- Explain the mechanism using only the E-block style selected — no mixing
+- All O-block objections must be addressed naturally in the body copy (not as a separate FAQ)
+- End with a soft curiosity or desire CTA — not a hard sell or price mention
+- 8th grade reading level. Short sentences. No jargon without an immediate plain-English follow-up
+- Do not use: revolutionary, groundbreaking, miracle, secret, hack, game-changer`;
+
+  const output = document.getElementById('outputArea');
+  output.textContent = prompt;
+  output.style.display = 'block';
+  document.getElementById('copyActions').style.display = 'flex';
+  output.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function copyPrompt() {
+  const text = document.getElementById('outputArea').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy prompt to clipboard', 2000);
+  });
+}
+</script>
+</body>
+</html>
